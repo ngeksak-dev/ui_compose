@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,11 +29,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.dropShadow
@@ -58,6 +63,7 @@ import com.example.ui_compose.helper.noRippleClickable
 import com.example.ui_compose.model.ChatItemModel
 import com.example.ui_compose.model.LanguageOptionModel
 import com.example.ui_compose.viewModel.ChatViewModel
+import kotlinx.coroutines.launch
 
 class ChatScreen() : Screen{
 
@@ -125,29 +131,58 @@ private fun ChatContent(
 }
 
 @Composable
-private fun ChatList(list : List<ChatItemModel> = emptyList()){
+private fun ChatList(
+    list: List<ChatItemModel> = emptyList()
+) {
     val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
 
-    LazyColumn (
+    var shouldAutoScroll by remember { mutableStateOf(true) }
+
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val totalItems = layoutInfo.totalItemsCount
+            lastVisibleItem >= totalItems - 1
+        }.collect { atBottom ->
+            shouldAutoScroll = atBottom
+        }
+    }
+
+    LaunchedEffect(list.size) {
+        if (shouldAutoScroll && list.isNotEmpty()) {
+            scope.launch {
+                listState.animateScrollToItem(list.lastIndex)
+            }
+        }
+    }
+
+    LazyColumn(
         state = listState,
-        modifier = Modifier.fillMaxSize()
-            .padding(horizontal = 25.dp)
-    ){
-        items(list, key = {item -> item.id}){message ->
-            when(message){
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 25.dp),
+        contentPadding = PaddingValues(vertical = 16.dp)
+    ) {
+        items(
+            items = list,
+            key = { it.id }
+        ) { message ->
+
+            when (message) {
                 is ChatItemModel.User -> {
                     UserChat(message.text)
                 }
+
                 is ChatItemModel.AI -> {
                     AiChat(
                         txtChat = message.text,
-                        onCopy = {
-
-                        },
-                        onRead = {
-
-                        })
+                        onCopy = {},
+                        onRead = {}
+                    )
                 }
+
                 is ChatItemModel.Loading -> {
                     LoadingChat(
                         modifier = Modifier.width(60.dp)
