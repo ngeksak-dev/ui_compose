@@ -21,13 +21,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import com.example.ui_compose.R
 import com.example.ui_compose.component.HomeAppTopBar
 import com.example.ui_compose.component.HomeMenuItem
 import com.example.ui_compose.model.HomeMenuModel
 
-@Composable
-fun HomeScreen(){
+class HomeScreen() : Screen {
 
     val menuList = listOf(
         HomeMenuModel(id = 1, title = "Ask AI", subTitle = "ask me anything", iconName = R.drawable.chat),
@@ -36,60 +38,64 @@ fun HomeScreen(){
         HomeMenuModel(id = 4, title = "Image to Code", subTitle = "convert image to code", iconName = R.drawable.code)
     )
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        topBar = {
-            HomeAppTopBar()
-        },
-        content = { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .fillMaxSize()
-                    .background(Color.White)
-                    .padding(horizontal = 20.dp)
-            ){
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Spacer(modifier = Modifier.weight(0.3f))
-                    Text(
-                        text = "Hi Zakk,",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = Color.LightGray,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "How ,can I assist you today?",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
-                    LazyVerticalGrid(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .padding(vertical = 20.dp),
-                        columns = GridCells.Fixed(2),
-                        horizontalArrangement = Arrangement.spacedBy(15.dp),
-                        verticalArrangement = Arrangement.spacedBy(15.dp)
-                    ) {
-                        item(span = { GridItemSpan(maxLineSpan) }) {
+    @Composable
+    override fun Content() {
 
+        val navigator = LocalNavigator.currentOrThrow
+
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            topBar = {
+                HomeAppTopBar()
+            },
+            content = { innerPadding ->
+                Box(
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize()
+                        .background(Color.White)
+                        .padding(horizontal = 20.dp)
+                ){
+                    Column(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Spacer(modifier = Modifier.weight(0.3f))
+                        Text(
+                            text = "Hi Zakk,",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = Color.LightGray,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "How ,can I assist you today?",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                        LazyVerticalGrid(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
+                                .padding(vertical = 20.dp),
+                            columns = GridCells.Fixed(2),
+                            horizontalArrangement = Arrangement.spacedBy(15.dp),
+                            verticalArrangement = Arrangement.spacedBy(15.dp)
+                        ) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+
+                            }
+                            items(menuList.size,key = {menuList[it].id}) { index ->
+                                HomeMenuItem(menuModel = menuList[index]){
+                                    navigator.push(ChatScreen())
+                                }
+                            }
                         }
-                        items(menuList.size,key = {menuList[it].id}) { index ->
-                            HomeMenuItem(menuModel = menuList[index])
-                        }
+                        Spacer(modifier = Modifier.weight(0.5f))
                     }
-                    Spacer(modifier = Modifier.weight(0.5f))
                 }
             }
-        }
-    )
-}
+        )
+    }
 
-@Preview(showBackground = true)
-@Composable
-private fun HomeScreenPrev() {
-    HomeScreen()
+
 }
