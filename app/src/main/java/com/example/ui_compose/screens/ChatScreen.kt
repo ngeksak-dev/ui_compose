@@ -3,6 +3,7 @@ package com.example.ui_compose.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,13 +43,21 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
+import com.example.ui_compose.ChatState
 import com.example.ui_compose.R
+import com.example.ui_compose.component.AiChat
 import com.example.ui_compose.component.ButtonSend
 import com.example.ui_compose.component.ChatAppTopBar
 import com.example.ui_compose.component.HintOnlyTextField
+import com.example.ui_compose.component.LoadingChat
+import com.example.ui_compose.component.UserChat
+import com.example.ui_compose.event.ChatEvent
 import com.example.ui_compose.helper.noRippleClickable
+import com.example.ui_compose.model.ChatItemModel
 import com.example.ui_compose.model.LanguageOptionModel
+import com.example.ui_compose.viewModel.ChatViewModel
 
 class ChatScreen() : Screen{
 
@@ -53,6 +65,10 @@ class ChatScreen() : Screen{
     override fun Content() {
         val focusManager = LocalFocusManager.current
         val keyboardController = LocalSoftwareKeyboardController.current
+
+        val viewModel = rememberScreenModel { ChatViewModel() }
+        val state by viewModel.chatState.collectAsState()
+        var langKey by remember { mutableStateOf("") }
 
         Scaffold(
             modifier = Modifier.noRippleClickable(
@@ -69,25 +85,76 @@ class ChatScreen() : Screen{
                 BottomSection(
                     modifier = Modifier
                         .imePadding(),
-                    selectedCountry = {},
-                    onSubmit = {}
+                    selectedCountry = {
+                        langKey = it
+                    },
+                    onSubmit = {
+                        viewModel.handleEvent(ChatEvent.onAskAi(txtChat = it, lang = langKey))
+                    }
                 )
             },
             content = { innerPadding ->
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .fillMaxSize()
-                        .background(color = Color.White)
-                ) {
-                    items(50){
-                        Text(
-                            text = "Item ${it.toString()}"
-                        )
-                    }
-                }
+                ChatContent(
+                    modifier = Modifier.padding(innerPadding),
+                    state = state)
             }
         )
+    }
+}
+
+@Composable
+private fun ChatContent(
+    modifier : Modifier = Modifier,
+    state : ChatState
+){
+
+    Box(
+        modifier = modifier.fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.Center
+    ){
+        if (state.chatList.isEmpty()){
+            Text(
+                text = "How can I help you Today?",
+                style = MaterialTheme.typography.titleMedium
+            )
+        }else{
+            ChatList(list = state.chatList)
+        }
+    }
+}
+
+@Composable
+private fun ChatList(list : List<ChatItemModel> = emptyList()){
+    val listState = rememberLazyListState()
+
+    LazyColumn (
+        state = listState,
+        modifier = Modifier.fillMaxSize()
+            .padding(horizontal = 25.dp)
+    ){
+        items(list, key = {item -> item.id}){message ->
+            when(message){
+                is ChatItemModel.User -> {
+                    UserChat(message.text)
+                }
+                is ChatItemModel.AI -> {
+                    AiChat(
+                        txtChat = message.text,
+                        onCopy = {
+
+                        },
+                        onRead = {
+
+                        })
+                }
+                is ChatItemModel.Loading -> {
+                    LoadingChat(
+                        modifier = Modifier.width(60.dp)
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -96,8 +163,9 @@ class ChatScreen() : Screen{
 private fun BottomSection(
     modifier: Modifier = Modifier,
     selectedCountry : (String) -> Unit,
-    onSubmit : () -> Unit
+    onSubmit : (String) -> Unit
 ){
+    val focusManger = LocalFocusManager.current
     var commandTxt by remember { mutableStateOf("") }
 
     Box(
@@ -115,6 +183,11 @@ private fun BottomSection(
                     offset = DpOffset(x = 0.dp, (-5).dp),
                 ))
                 .background(color = Color.White, shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp))
+                .noRippleClickable(
+                    onClick = {
+                        focusManger.clearFocus()
+                    }
+                )
                 .padding(10.dp)
         ){
             Column {
@@ -131,8 +204,13 @@ private fun BottomSection(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ){
-                    SelectLanguage {  }
-                    ButtonSend {  }
+                    SelectLanguage {
+                        selectedCountry(it)
+                    }
+                    ButtonSend {
+                        onSubmit(commandTxt)
+                        commandTxt = ""
+                    }
                 }
             }
         }

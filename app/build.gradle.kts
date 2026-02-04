@@ -1,3 +1,5 @@
+
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -61,5 +63,7 @@ dependencies {
     implementation(libs.voyager.tab.navigator)
     implementation(libs.voyager.transitions)
     implementation(libs.voyager.koin)
+
+    implementation(libs.lottie.compose)
 
 }

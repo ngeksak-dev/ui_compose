@@ -13,6 +13,7 @@ import cafe.adriel.voyager.transitions.SlideTransition
 import com.example.ui_compose.screens.HomeScreen
 import com.example.ui_compose.ui.theme.Ui_ComposeTheme
 
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

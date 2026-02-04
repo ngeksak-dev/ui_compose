@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,7 +42,7 @@ fun AiChat(
             Row {
                 Image(
                     modifier = Modifier
-                        .size(20.dp)
+                        .size(25.dp)
                         .clickable(
                             onClick = {
                                 onCopy
@@ -51,9 +52,10 @@ fun AiChat(
                     contentDescription = "Copy",
                     colorFilter = ColorFilter.tint(Color.Black)
                 )
+                Spacer(modifier = Modifier.width(3.dp))
                 Image(
                     modifier = Modifier
-                        .size(20.dp)
+                        .size(25.dp)
                         .clickable(
                             onClick = {
                                 onRead

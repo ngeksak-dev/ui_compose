@@ -1,7 +1,9 @@
 package com.example.ui_compose.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,18 +20,22 @@ import androidx.compose.ui.unit.dp
 fun UserChat(
     txtChat : String
 ){
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp, bottomStart = 15.dp))
-            .background(color = Color.Black)
-            .padding(vertical = 10.dp),
-        contentAlignment = Alignment.Center
-    ){
-        Text(
-            text = txtChat,
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.White
-        )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End
+    ) {
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp, bottomStart = 15.dp))
+                .background(color = Color.Black)
+                .padding(vertical = 10.dp, horizontal = 25.dp),
+            contentAlignment = Alignment.CenterEnd
+        ){
+            Text(
+                text = txtChat,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White
+            )
+        }
     }
 }
